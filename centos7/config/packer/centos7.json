@@ -6,8 +6,10 @@
         "vm_name": "centos7",
         "virtualbox_guest_os_type": "RedHat_64",
         "cpus": "1",
-        "disk_size": "5000",
+        "disk_size": "4000",
         "memory": "2048",
+        "vram": "24",
+        "remote_desktop_extension": "off",
         "iso_checksum": "907e5755f824c5848b9c8efbb484f3cd945e93faa024bad6ba875226f9683b16",
         "iso_checksum_type": "sha256",
         "iso_path": "/Users/gerben/Downloads",
@@ -53,6 +55,12 @@
                ],
                [
                    "modifyvm", "{{ .Name }}", "--cpus", "{{ user `cpus` }}"
+               ],
+               [
+                   "modifyvm", "{{ .Name }}", "--vram", "{{ user `vram` }}"
+               ],
+               [
+                   "modifyvm", "{{ .Name }}", "--vrde", "{{ user `remote_desktop_extension` }}"
                ]
            ],
 
@@ -73,8 +81,14 @@
             ],
 
             "scripts": [
+                "scripts/update_kernel.sh",
+                "scripts/reboot.sh",
+                "scripts/add_epel_release.sh",
+                "scripts/update_packages.sh",
+                "scripts/purge_old_kernels.sh",
                 "scripts/install_vagrant_insecure_key.sh",
                 "scripts/install_virtualbox_guest_additions.sh",
+                "scripts/install_packages.sh",
                 "scripts/clean_up.sh"
             ]
         }
@@ -82,11 +96,12 @@
 
     "post-processors":
     [
-        {
-            "type": "vagrant",
-            "output": "artifacts/vagrant/{{ user `vm_name` }}.box",
-            "keep_input_artifact": true
-        }
-
+        [
+            {
+                "type": "vagrant",
+                "output": "artifacts/vagrant/{{ user `vm_name` }}.box",
+                "keep_input_artifact": true
+            }
+        ]
     ]
 }
