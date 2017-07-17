@@ -63,7 +63,7 @@
             "disk_size": "{{ user `disk_size` }}",
             "shutdown_command": "echo '{{ user `password` }}' | sudo -S systemctl poweroff",
             "http_directory": "http",
-            "boot_wait": "5s",
+            "boot_wait": "35s",
             "boot_command": [
                 "<enter><wait><f6><esc><wait>",
                 "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
@@ -75,7 +75,7 @@
                 "vga=773 ",
                 "debconf/priority=critical ",
                 "auto-install/enable=true ",
-                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04.preseed ",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04/minimal.preseed ",
                 "initrd=/install/initrd.gz quiet ",
                 "<enter>"
             ],
@@ -89,7 +89,7 @@
             "type": "shell",
             "execute_command": "echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'",
             "scripts": [
-                "scripts/update-system.sh"
+                "scripts/ubuntu-16.04/update-system.sh"
             ]
         }
     ],
