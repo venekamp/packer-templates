@@ -1,2 +1,4 @@
 artifacts/
 packer_cache/
+.DS_Store
+*.log

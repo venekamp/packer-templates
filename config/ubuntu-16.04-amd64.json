@@ -1,0 +1,107 @@
+{
+    "variables": {
+        "username": "ubuntu",
+        "password": "insecure",
+        "vm_name": "ubuntu-16.04",
+        "iso_checksum_url": "http://ftp.nluug.nl/os/Linux/distr/ubuntu-releases/16.04.2/SHA256SUMS",
+        "iso_url": "http://ftp.nluug.nl/os/Linux/distr/ubuntu-releases/16.04.2/ubuntu-16.04.2-server-amd64.iso",
+        "ssh_timeout": "30m",
+        "vbox_memory": "2048",
+        "disk_size": "8000",
+        "compression_level": "9",
+        "qemu_accelerator": "kvm"
+    },
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "guest_os_type": "Ubuntu_64",
+            "format": "ovf",
+            "iso_checksum_type": "sha256",
+            "iso_checksum_url": "{{ user `iso_checksum_url` }}",
+            "iso_url": "{{ user `iso_url` }}",
+            "ssh_username": "{{ user `username` }}",
+            "ssh_password": "{{ user `password` }}",
+            "ssh_timeout": "{{ user `ssh_timeout` }}",
+            "ssh_pty": "true",
+            "output_directory": "build/virtualbox/",
+            "vm_name": "{{ user `vm_name` }}",
+            "disk_size": "{{ user `disk_size` }}",
+            "shutdown_command": "echo '{{ user `password` }}' | sudo -S systemctl poweroff",
+            "http_directory": "http",
+            "boot_wait": "5s",
+            "boot_command": [
+                "<enter><wait><f6><esc><wait>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "vga=788 ",
+                "debconf/priority=critical ",
+                "auto-install/enable=true ",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04.preseed ",
+                "initrd=/install/initrd.gz quiet ",
+                "<enter>"
+            ],
+            "vboxmanage": [
+                ["modifyvm", "{{ .Name }}", "--memory", "{{ user `vbox_memory` }}"]
+            ]
+        },
+        {
+            "type": "qemu",
+            "format": "qcow2",
+            "accelerator": "{{ user `qemu_accelerator` }}",
+            "iso_checksum_type": "sha256",
+            "iso_checksum_url": "{{ user `iso_checksum_url` }}",
+            "iso_url": "{{ user `iso_url` }}",
+            "ssh_username": "{{ user `username` }}",
+            "ssh_password": "{{ user `password` }}",
+            "ssh_timeout": "{{ user `ssh_timeout` }}",
+            "ssh_pty": "true",
+            "output_directory": "build/qemu/",
+            "disk_size": "{{ user `disk_size` }}",
+            "shutdown_command": "echo '{{ user `password` }}' | sudo -S systemctl poweroff",
+            "http_directory": "http",
+            "boot_wait": "5s",
+            "boot_command": [
+                "<enter><wait><f6><esc><wait>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "vga=773 ",
+                "debconf/priority=critical ",
+                "auto-install/enable=true ",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04.preseed ",
+                "initrd=/install/initrd.gz quiet ",
+                "<enter>"
+            ],
+            "qemuargs": [
+                [ "-m", "2048M" ]
+            ]
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "execute_command": "echo '{{ user `password` }}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'",
+            "scripts": [
+                "scripts/update-system.sh"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "checksum",
+            "checksum_types": [ "md5", "sha256" ]
+        },
+         {
+            "type": "vagrant",
+            "output": "build/vagrant/ubuntu-16.04.box"
+        }
+   ]
+}
+
